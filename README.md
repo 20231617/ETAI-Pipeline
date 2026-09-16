@@ -1,5 +1,6 @@
 # Baseline Predictive Pipeline -- ETAI
-
+20231617 - Diana Gomes
+Week 2 - The logistic regression is the best model because it has a better accuracy.
 This is the **starting point** for your semester project: a small but *complete* predictive pipeline -- every piece a real project needs (entry point, config, data loading, preprocessing, model, evaluation), just kept as simple as possible for now.
 
 The task: predict two-year recidivism using ProPublica's COMPAS
