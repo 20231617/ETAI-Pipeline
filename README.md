@@ -1,7 +1,11 @@
 # Baseline Predictive Pipeline -- ETAI
 20231617 - Diana Gomes
 Week 2 - The logistic regression is the best model because it has a better accuracy.
-This is the **starting point** for your semester project: a small but *complete* predictive pipeline -- every piece a real project needs (entry point, config, data loading, preprocessing, model, evaluation), just kept as simple as possible for now.
+
+Week 3 - While the uncleaned dataset appeared to deliver higher recall (0.61 vs 0.48), it was making decisions based on corrupted categorical features. Implementing a proper data cleaning and preprocessing pipeline fixed the fragmented features, stabilized sample evaluations, and significantly reduced false positive rates across demographic groups (dropping African-American FPR from 0.33 down to 0.28)
+The Decision Tree model demonstrates slightly superior test accuracy (66.5%) and higher recall for reoffenders (0.51) compared to Logistic Regression (65.7% accuracy, 0.48 recall). Both models significantly improve racial equity over COMPAS's baseline, maintaining an identical, lower False Positive Rate of 0.28 for African-American individuals (down from 0.44).
+
+This is the **starting point** for your semester project: a small but *complete* predictive pipeline -- every piece a real project needs (entry point, config, data loading, preprocessing, model, evaluation), just kept as simple as possible for now
 
 The task: predict two-year recidivism using ProPublica's COMPAS
 dataset -- the data behind a real 2016 investigation into a risk-
