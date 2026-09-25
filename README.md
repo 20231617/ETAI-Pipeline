@@ -2,8 +2,7 @@
 20231617 - Diana Gomes
 Week 2 - The logistic regression is the best model because it has a better accuracy.
 
-Week 3 - While the uncleaned dataset appeared to deliver higher recall (0.61 vs 0.48), it was making decisions based on corrupted categorical features. Implementing a proper data cleaning and preprocessing pipeline fixed the fragmented features, stabilized sample evaluations, and significantly reduced false positive rates across demographic groups (dropping African-American FPR from 0.33 down to 0.28)
-The Decision Tree model demonstrates slightly superior test accuracy (66.5%) and higher recall for reoffenders (0.51) compared to Logistic Regression (65.7% accuracy, 0.48 recall). Both models significantly improve racial equity over COMPAS's baseline, maintaining an identical, lower False Positive Rate of 0.28 for African-American individuals (down from 0.44).
+Week 3 - Cleaning didn't boost accuracy, but it made the fairness numbers trustworthy — before cleaning, race was split into misspelled fragments too small to measure reliably; after cleaning, the African-American FPR came out to a solid 0.28 (down from COMPAS's 0.44). Between models, Decision Tree slightly beats Logistic Regression (66.5% vs. 65.7% accuracy, 0.51 vs. 0.48 recall) — a small but real edge. Bottom line: cleaning mattered for correctness, not performance, and both cleaned models are a clear fairness improvement over COMPAS.
 
 This is the **starting point** for your semester project: a small but *complete* predictive pipeline -- every piece a real project needs (entry point, config, data loading, preprocessing, model, evaluation), just kept as simple as possible for now
 
