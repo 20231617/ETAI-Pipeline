@@ -4,6 +4,8 @@ Week 2 - The logistic regression is the best model because it has a better accur
 
 Week 3 - Cleaning didn't boost accuracy, but it made the fairness numbers trustworthy — before cleaning, race was split into misspelled fragments too small to measure reliably; after cleaning, the African-American FPR came out to a solid 0.28 (down from COMPAS's 0.44). Between models, Decision Tree slightly beats Logistic Regression (66.5% vs. 65.7% accuracy, 0.51 vs. 0.48 recall) — a small but real edge. Bottom line: cleaning mattered for correctness, not performance, and both cleaned models are a clear fairness improvement over COMPAS.
 
+Week 4 - Week 3's single split made the decision tree look better than logistic regression, but cross-validation shows that gap is smaller than each model's own fold-to-fold variation — they're statistically tied. The random forest, despite being more complex, scores lowest and has a much larger train–validation gap, a clear sign of overfitting rather than real skill. All three still beat the dummy baseline by a wide margin, confirming the models are learning something real, just not a clear winner between them yet.
+
 This is the **starting point** for your semester project: a small but *complete* predictive pipeline -- every piece a real project needs (entry point, config, data loading, preprocessing, model, evaluation), just kept as simple as possible for now
 
 The task: predict two-year recidivism using ProPublica's COMPAS

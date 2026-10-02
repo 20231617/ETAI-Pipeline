@@ -18,11 +18,15 @@ def save_run(results_dir: str, config: dict, report_text: str) -> str:
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     path = os.path.join(results_dir, f"run_{timestamp}.txt")
 
+    cv_cfg = config.get("cv", {})
+    test_cfg = config.get("test_set", {})
+
     header = (
         f"Run: {timestamp}\n"
         f"Model: {config['model']['type']}  params={config['model']['params']}\n"
-        f"Test size: {config['split']['test_size']}  "
-        f"random_state: {config['split']['random_state']}\n"
+        f"Locked test set: size={test_cfg.get('size')}  random_state={test_cfg.get('random_state')}\n"
+        f"Cross-validation: n_splits={cv_cfg.get('n_splits')}  shuffle={cv_cfg.get('shuffle')}  "
+        f"random_state={cv_cfg.get('random_state')}  scoring={cv_cfg.get('scoring')}\n"
         + "=" * 60 + "\n\n"
     )
 
