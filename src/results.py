@@ -18,19 +18,23 @@ def save_run(results_dir: str, config: dict, report_text: str) -> str:
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     path = os.path.join(results_dir, f"run_{timestamp}.txt")
 
-    cv_cfg = config.get("cv", {})
-    test_cfg = config.get("test_set", {})
-
+    cv = config["cv"]
+    tuning = config.get("tuning", {})
+    tuning_line = (f"Optuna, {tuning['n_trials']} trials x {tuning['n_splits']} folds, nested CV  "
+                   f"random_state={tuning['random_state']}" if tuning.get("enabled") else "off")
     header = (
         f"Run: {timestamp}\n"
-        f"Model: {config['model']['type']}  params={config['model']['params']}\n"
-        f"Locked test set: size={test_cfg.get('size')}  random_state={test_cfg.get('random_state')}\n"
-        f"Cross-validation: n_splits={cv_cfg.get('n_splits')}  shuffle={cv_cfg.get('shuffle')}  "
-        f"random_state={cv_cfg.get('random_state')}  scoring={cv_cfg.get('scoring')}\n"
+        f"Model: {config['model']['type']}  params={config['model'].get('params')}\n"
+        f"Preprocessing: encoder={config['preprocessing']['encoder']}  "
+        f"scaler={config['preprocessing']['scaler']}\n"
+        f"CV: {cv['n_splits']} stratified folds  shuffle={cv.get('shuffle', True)}  "
+        f"random_state={cv.get('random_state')}  metric={cv.get('scoring', 'accuracy')}\n"
+        f"Tuning: {tuning_line}\n"
+        f"Locked test set: size={config['test_set']['size']}  "
+        f"random_state={config['test_set']['random_state']}  (not evaluated)\n"
         + "=" * 60 + "\n\n"
     )
 
     with open(path, "w") as f:
         f.write(header + report_text)
-
     return path
