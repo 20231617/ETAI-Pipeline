@@ -10,6 +10,8 @@ Week 5 - Tuning fixed the overfitting: the decision tree went from 0.610 to 0.67
 
 Week 6 - Tuned AdaBoost, random forest, oblique random forest and the decision tree all land within one point of each other and of logistic regression. The paired test can't separate them, so there is no clear winner and I report AdaBoost's nested score (0.682), not its best trial.
 
+Week 7 - Every model beats the no-model floor (0.500). Tuning mattered most for the models that overfit by default (decision tree, forests), and the top five ensembles are tied at about 0.727, only about 0.008 above logistic regression. Naive Bayes is the weakest, so I would pick gradient boosting but report it as tied.
+
 This is the **starting point** for your semester project: a small but *complete* predictive pipeline -- every piece a real project needs (entry point, config, data loading, preprocessing, model, evaluation), just kept as simple as possible for now
 
 The task: predict two-year recidivism using ProPublica's COMPAS
