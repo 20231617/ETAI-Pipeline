@@ -61,6 +61,13 @@ def clean_dataset(df: pd.DataFrame, diagnostics_config: dict) -> pd.DataFrame:
         if col in out.columns:
             out[col] = pd.to_numeric(out[col].replace(list(placeholder_tokens), np.nan), errors="coerce")
 
+    # Week 9: replace placeholders in every text column, including columns without
+    # a canonical spelling map (Adult's workclass, occupation, native_country).
+    # COMPAS's existing category mappings still run below.
+    for col in out.select_dtypes(include=["object", "string"]).columns:
+        stripped = out[col].astype("string").str.strip()
+        out[col] = out[col].mask(stripped.isin(placeholder_tokens))
+
     flag_invalid_values(out, diagnostics_config.get("validity_rules", {}))
     out = _canonicalize_categories(out, diagnostics_config.get("canonical_categories", {}), placeholder_tokens)
 

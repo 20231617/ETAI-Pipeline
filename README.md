@@ -12,6 +12,13 @@ Week 6 - Tuned AdaBoost, random forest, oblique random forest and the decision t
 
 Week 7 - Every model beats the no-model floor (0.500). Tuning mattered most for the models that overfit by default (decision tree, forests), and the top five ensembles are tied at about 0.727, only about 0.008 above logistic regression. Naive Bayes is the weakest, so I would pick gradient boosting but report it as tied.
 
+Week 8 - XGBoost achieved a ROC-AUC of 0.726 with feature selection and 0.729 without it. VoteSelector retained only two features: 'age' and 'priors_count'. The corrected paired t-test (p ≈ 0.273) found no statistically significant difference, suggesting that feature selection simplifies the model while maintaining comparable predictive performance.
+
+Week 9 - ## Week 9 — Conclusion
+
+The pipeline was successfully adapted to the Adult Income dataset using XGBoost. Hyperparameter tuning slightly improved performance, achieving ROC-AUC = 0.906, accuracy = 0.859, and F1 = 0.667, meeting all three required thresholds in cross-validation.
+The tuned model was refitted on 4,800 development observations and successfully generated predictions for 2,000 new observations. Overall, the experiment demonstrated the pipeline's flexibility and effectiveness on a new classification task.
+
 This is the **starting point** for your semester project: a small but *complete* predictive pipeline -- every piece a real project needs (entry point, config, data loading, preprocessing, model, evaluation), just kept as simple as possible for now
 
 The task: predict two-year recidivism using ProPublica's COMPAS
@@ -53,6 +60,9 @@ This table is updated after each practical class, so you can always see what cha
 | 4 | Preprocessing inside the pipeline + cross-validation -- evaluating a model honestly | A **locked final test set** (20%, stratified, seed 42) is set aside by `split_dev_test()` (replaces `split_train_test()`) and never scored; models are now judged by **stratified 5-fold cross-validation** of the whole pipeline (preprocessing + model) on the development set, reported per fold with mean ± std and the train-validation gap; the classification report and fairness check now use out-of-fold predictions; target encoding switched to scikit-learn's cross-fitting `TargetEncoder` (a row's own label never leaks into its own encoding), encoder/scaler set by hand in `config.yaml` (target encoding + robust scaling, reasons in the comments); **two fixes** in `clean_dataset()`: genuine `NaN`s in categorical columns were being turned into the string `"nan"` (a fake category), so 229 `c_charge_degree` gaps were never imputed or flagged -- fixed in `config.yaml` alone: `"nan"` added to `diagnostics.placeholder_tokens` (the category cleanup's last step turns listed tokens into `NaN`, after its text conversion); and it no longer drops rows -- de-duplication moved to a separate, training-only `drop_duplicate_rows()` (run before the dev/test split), so the same cleaning can run on new data where every row needs a prediction; `src/data_diagnostics.py` removed -- its one cleaning function (`flag_invalid_values`) moved into `preprocessing.py`, and the EDA-only checks (missingness test, duplicate counts) live in the EDA notebooks, not in every pipeline run; `dummy` (majority-class) model added as the floor to beat, and `random_forest` registered (sensible defaults, untuned); the final model is refit on the whole development set after CV; `config.yaml` gains `test_set` and `cv` sections -- see "Model evaluation" below |
 | 5 | Hyperparameter tuning without leakage | New `src/tuning.py`: hyperparameters are tuned with **Optuna** (seeded TPE sampler) on the development set only -- every candidate is scored by stratified 5-fold CV of the **whole** pipeline (preprocessing re-fit in every fold of every trial), on the same folds for every candidate; the tuning procedure is estimated honestly by **nested cross-validation** (the tuning repeated inside each outer CV fold, scored on the outer fold it never saw), whose out-of-fold predictions now feed the classification report and fairness check; the reported "best trial" score is shown next to the nested one as an optimism check; the final model is the tuned pipeline refit on all development rows; `build_pipeline()` in `src/model.py` now builds the preprocessing + model `Pipeline` (one place to add a learned step later); `config.yaml` gains a `tuning` section (on/off, trials, inner folds, seed, one search space per model type) and the model becomes the decision tree; `optuna` added to `requirements.txt`. The locked test set is still untouched -- see "Hyperparameter tuning" below |
 | 6 | Ensembles in depth: random forest, oblique random forest, AdaBoost | Two new model types in `src/model.py`: `oblique_random_forest` (a forest of oblique trees built from scikit-learn parts -- every tree splits on its own random sparse linear combinations of the features, via `SparseRandomProjection` inside `BaggingClassifier`) and `adaboost` (AdaBoost over decision trees of a chosen depth; stumps by default), both registered in `_MODELS`; the random forest is now the model `main.py` runs (200 trees, all CPU cores); `config.yaml` gains search spaces for the three ensembles -- the forests tune tree size (`max_depth`, `min_samples_leaf`) and decorrelation (`max_features` / number of combinations) but not the number of trees, AdaBoost tunes its base trees' depth, its number of rounds and its learning rate; `corrected_paired_test()` in `src/evaluate.py` compares two models scored on the same folds (Nadeau & Bengio's corrected paired t-test), so a "winner" is only called when the difference is bigger than fold-to-fold noise; `scipy` listed in `requirements.txt` (it already came with scikit-learn, so nothing new to install) -- see "Ensembles" below |
+| 7 | Boosting and model comparison | Compared boosting methods and Naive Bayes against earlier models; results summarised in the Week 7 note above. |
+| 8 | XGBoost + feature selection | Registered `XGBClassifier` as `xgboost`; added `VoteSelector` (random forest, gradient boosting, L1 logistic regression voting) as an optional learned pipeline step; added `feature_selection` and XGBoost tuning settings to `config.yaml`; updated `main.py` to use a temporary cache, tune the vote threshold alongside XGBoost, report selected features and record the selection setting; updated run-report header in `src/results.py`. |
+| 9 | Beyond COMPAS: Adult income | Added `config_adult.yaml`, generic placeholder cleaning, Adult-compatible fairness reporting, config argument in `main.py`, and predictions for new unlabeled rows. |
 
 ## Preprocessing decisions
 
@@ -211,6 +221,50 @@ git push
 
 Alternative: set up an SSH key once (`ssh-keygen -t ed25519`, then add the public key under **GitHub -> Settings -> SSH and GPG keys**) and use the repo's SSH remote URL (`git@github.com:...`) instead of HTTPS -- no token to manage or renew.
 
+
+## Week 8 — XGBoost and feature selection
+
+The pipeline now supports `model.type: "xgboost"` and an optional feature-selection step controlled by `feature_selection.enabled` in `config.yaml`. `VoteSelector` selects features receiving at least `min_votes` votes from three fitted models: random forest, gradient boosting, and L1-regularised logistic regression. The selector is placed **after preprocessing and before the final model**, so selection is learned only from each training fold. When tuning is enabled, Optuna also searches `select__min_votes` alongside the XGBoost hyperparameters. A temporary pipeline cache avoids repeatedly fitting unchanged preprocessing and selection steps. The final run reports the retained feature names and records the selection setting.
+
+Install the new dependency by adding `xgboost>=2.0` to `requirements.txt`, then run `python -m pip install -r requirements.txt`. For an initial smoke test, temporarily set `tuning.enabled: false` and run `python main.py`. Re-enable tuning for the required comparison.
+
+### Week 8 experiment — fill in after running both configurations
+
+Run tuned XGBoost twice on the same development-set folds and with the same random seeds. First use `feature_selection.enabled: true`, then `false`. Keep the locked test set untouched. Copy the **nested-CV** fold validation scores from both run reports.
+
+| Configuration | Nested CV ROC-AUC (mean ± std) | Run ID |
+|---|---|---|
+| Tuned XGBoost **with** feature selection | Pending run | Pending |
+| Tuned XGBoost **without** feature selection | Pending run | Pending |
+
+**Features kept (selection-enabled final fit):** Pending run.
+
+**Corrected paired test:** Pending both runs. Compare matching fold scores using `corrected_paired_test(with_selection, without_selection, test_train_ratio=1/4)` from `src.evaluate`. Record the mean difference, number of winning folds, t statistic and p-value.
+
+**Conclusion (3–5 sentences, to complete after results):** Discuss whether the smaller selected-feature model achieves comparable ROC-AUC, whether the paired test supports a meaningful difference, and whether the reduced feature count justifies keeping feature selection enabled. Do not claim an improvement until the measured results support it.
+
 ## Dataset
 
 See `data/README.md`.
+
+## Beyond COMPAS — Week 9 (Option A: Adult income)
+
+Run `python main.py` for the original COMPAS configuration, or `python main.py config_adult.yaml` for Adult income. Copy `adult_train.csv` and `adult_new.csv` from the class notebook's `data/` folder into this project's `data/` folder first. Adult outputs go to `results/adult/`, including `adult_predictions.csv` with `id`, `probability`, and `prediction` (one row per new person).
+
+| Assumption found | Why it broke | General fix |
+|---|---|---|
+| Placeholder cleaning only handled mapped categories | Adult's `?` values occur in unmapped text columns | Replace configured placeholders in all text columns |
+| Fairness report expected `score_text` | Adult has no COMPAS score | Report model FPR by the configured sensitive attribute when no reference score exists |
+| Entry point always read `config.yaml` | No way to run a different dataset | Optional command-line config path; default remains COMPAS |
+| Predictions not exported | Previous task only evaluated labeled rows | Optional prediction block using the refit pipeline and row-preserving cleaning |
+
+**Adult modeling choices:** Exclude `sex` (audited sensitive attribute), `race` (also excluded as a sensitive attribute), `id`, `fnlwgt`, and redundant `education` from predictors. Keep `education_num`, other documented features, and all anonymized `v01`–`v25` columns. Add missingness flags for `workclass` and `occupation`. Age 17 is valid for Adult. `capital_gain=99999` is a valid top code.
+
+**Results (fill after running on the actual class CSV files):**
+
+| Model | Feature selection | Tuned | ROC-AUC | Accuracy | F1 |
+|---|---|---|---|---|---|
+| XGBoost | Off | No | pending | pending | pending |
+| XGBoost | Off | Yes | pending | pending | pending |
+
+Targets: ROC-AUC ≥ 0.900, accuracy ≥ 0.855, F1 ≥ 0.660 in the same development-set CV run. Compare candidates on the same folds; add selected features if feature selection is enabled. Document what achieved the targets after actual runs; no performance claims are made before testing.

@@ -99,6 +99,24 @@ def fairness_report(y_true, oof_proba, extras: pd.DataFrame, sensitive_attr: str
     score (`score_text` other than "Low" counts as predicted to reoffend), on the same rows.
     Rows with an unknown group are reported as "unknown". A simple check, not a full audit.
     """
+    # Week 9: Adult has no COMPAS score to compare against.
+    # Preserve the original COMPAS fairness report when score_text is present.
+    if extras is None or "score_text" not in extras.columns:
+        if extras is None or sensitive_attr not in extras.columns:
+            return "Fairness report unavailable: sensitive attribute not supplied."
+        df = extras.copy()
+        df[sensitive_attr] = df[sensitive_attr].astype(object).fillna("unknown")
+        df["y_true"] = np.asarray(y_true)
+        df["y_pred_model"] = (np.asarray(oof_proba) >= threshold).astype(int)
+        lines = [f"False positive rate by {sensitive_attr} (development set, out-of-fold)",
+                 "(share of true class 0 predicted as class 1)", ""]
+        for group, subset in df.groupby(sensitive_attr):
+            negatives = subset[subset["y_true"] == 0]
+            if len(negatives):
+                fpr = (negatives["y_pred_model"] == 1).mean()
+                lines.append(f"  {str(group):<20s} FPR = {fpr:.2f}  (n={len(negatives)})")
+        return "\n".join(lines)
+
     df = extras.copy()
     df[sensitive_attr] = df[sensitive_attr].astype(object).fillna("unknown")
     df["y_true"] = pd.Series(y_true).values
