@@ -14,9 +14,7 @@ Week 7 - Every model beats the no-model floor (0.500). Tuning mattered most for 
 
 Week 8 - XGBoost achieved a ROC-AUC of 0.726 with feature selection and 0.729 without it. VoteSelector retained only two features: 'age' and 'priors_count'. The corrected paired t-test (p ≈ 0.273) found no statistically significant difference, suggesting that feature selection simplifies the model while maintaining comparable predictive performance.
 
-Week 9 - ## Week 9 — Conclusion
-
-The pipeline was successfully adapted to the Adult Income dataset using XGBoost. Hyperparameter tuning slightly improved performance, achieving ROC-AUC = 0.906, accuracy = 0.859, and F1 = 0.667, meeting all three required thresholds in cross-validation.
+Week 9 - The pipeline was successfully adapted to the Adult Income dataset using XGBoost. Hyperparameter tuning slightly improved performance, achieving ROC-AUC = 0.906, accuracy = 0.859, and F1 = 0.667, meeting all three required thresholds in cross-validation.
 The tuned model was refitted on 4,800 development observations and successfully generated predictions for 2,000 new observations. Overall, the experiment demonstrated the pipeline's flexibility and effectiveness on a new classification task.
 
 This is the **starting point** for your semester project: a small but *complete* predictive pipeline -- every piece a real project needs (entry point, config, data loading, preprocessing, model, evaluation), just kept as simple as possible for now
