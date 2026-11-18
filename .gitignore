@@ -1,7 +1,15 @@
 venv/
+.venv/
 __pycache__/
 *.pyc
 .DS_Store
 .ipynb_checkpoints/
 *.egg-info/
 results/
+
+# Week 10
+models/
+predictions.csv
+
+# Temporary cache
+pipeline_cache/

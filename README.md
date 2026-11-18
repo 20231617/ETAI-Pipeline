@@ -17,6 +17,9 @@ Week 8 - XGBoost achieved a ROC-AUC of 0.726 with feature selection and 0.729 wi
 Week 9 - The pipeline was successfully adapted to the Adult Income dataset using XGBoost. Hyperparameter tuning slightly improved performance, achieving ROC-AUC = 0.906, accuracy = 0.859, and F1 = 0.667, meeting all three required thresholds in cross-validation.
 The tuned model was refitted on 4,800 development observations and successfully generated predictions for 2,000 new observations. Overall, the experiment demonstrated the pipeline's flexibility and effectiveness on a new classification task.
 
+Week 10 - Week 10 enhanced the pipeline through advanced missing-value imputation and model deployment. Four imputation methods were compared, with KNN achieving the highest ROC-AUC (0.725). However, no statistically significant differences were found, supporting the selection of Median imputation for its simplicity and efficiency.
+After hyperparameter tuning, XGBoost achieved a ROC-AUC of 0.729, accuracy of 0.682, and F1-score of 0.614. The complete pipeline was successfully saved and used to generate predictions for 20 unseen observations. Overall, these improvements strengthened the pipeline's reproducibility, efficiency and readiness for real-world prediction tasks.
+
 This is the **starting point** for your semester project: a small but *complete* predictive pipeline -- every piece a real project needs (entry point, config, data loading, preprocessing, model, evaluation), just kept as simple as possible for now
 
 The task: predict two-year recidivism using ProPublica's COMPAS

@@ -61,6 +61,9 @@ preprocessing:
   imputation:
     numeric_strategy: "median"
     categorical_strategy: "most_frequent"
+    n_neighbors: 5           # knn
+    max_iter: 10             # iterative and random_forest
+    n_estimators: 50         # random_forest imputer
 
 model:
   type: "xgboost"
@@ -133,4 +136,5 @@ tuning:
 
 output:
   results_dir: "results"
+  model_path: "models/model.joblib"
   scoreboard: "results/runs.csv"  # one row per run; delete it when the data, cleaning or folds change
